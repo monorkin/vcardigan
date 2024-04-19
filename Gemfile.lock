@@ -1,26 +1,31 @@
 PATH
   remote: .
   specs:
-    vcardigan (0.0.8)
+    vcardigan (0.0.9)
 
 GEM
   remote: https://rubygems.org/
   specs:
     coderay (1.1.0)
-    diff-lcs (1.1.3)
+    diff-lcs (1.5.1)
     method_source (0.8.2)
     pry (0.9.12.6)
       coderay (~> 1.0)
       method_source (~> 0.8)
       slop (~> 3.4)
-    rspec (2.12.0)
-      rspec-core (~> 2.12.0)
-      rspec-expectations (~> 2.12.0)
-      rspec-mocks (~> 2.12.0)
-    rspec-core (2.12.2)
-    rspec-expectations (2.12.1)
-      diff-lcs (~> 1.1.3)
-    rspec-mocks (2.12.1)
+    rspec (3.13.0)
+      rspec-core (~> 3.13.0)
+      rspec-expectations (~> 3.13.0)
+      rspec-mocks (~> 3.13.0)
+    rspec-core (3.13.0)
+      rspec-support (~> 3.13.0)
+    rspec-expectations (3.13.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-mocks (3.13.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-support (3.13.1)
     slop (3.4.7)
 
 PLATFORMS
@@ -28,5 +33,8 @@ PLATFORMS
 
 DEPENDENCIES
   pry
-  rspec (~> 2.0)
+  rspec (~> 3.0)
   vcardigan!
+
+BUNDLED WITH
+   2.5.7
