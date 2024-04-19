@@ -1,0 +1,6 @@
+EMAIL;type=INTERNET;type=HOME:joe@example.com
+BEGIN:VCARD
+VERSION:4.0
+FN:Joe Strummer
+END:VCARD
+N:Strummer;Joe;;;

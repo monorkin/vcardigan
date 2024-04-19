@@ -1,0 +1,7 @@
+BEGIN:VCARD
+VERSION:4.0
+FN:Joe Strummer
+N:Strummer;Joe;;;
+BEGIN:VCARD
+EMAIL;type=INTERNET;type=HOME:joe@example.com
+END:VCARD

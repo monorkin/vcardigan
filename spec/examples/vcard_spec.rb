@@ -357,4 +357,100 @@ describe VCardigan::VCard do
       end
     end
   end
+
+  describe '#parse!' do
+    context 'invalid vCard' do
+      let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/joe.vcf') }
+      let(:vcard) { VCardigan.parse!(data) }
+      let(:fields) { vcard.instance_variable_get(:@fields) }
+
+      context 'when the fields are out of order' do
+        let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/scrambeled_joe.vcf') }
+
+        it 'ignores all fields before the begin line and after the end line' do
+          expect(fields).not_to have_key('n')
+          expect(fields).not_to have_key('email')
+          expect(fields).to have_key('fn')
+          expect(vcard.fullname.first.value).to eq('Joe Strummer')
+          expect(vcard.email).to be_nil
+        end
+      end
+
+      context 'when the version is missing' do
+        let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/no_version.vcf') }
+
+        it 'raises an error' do
+          expect { vcard }.to raise_error(VCardigan::MissingVersionError)
+        end
+      end
+
+      context 'when the begin line is missing' do
+        let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/no_begin.vcf') }
+
+        it 'raises an error' do
+          expect { vcard }.to raise_error(VCardigan::MissingBeginError)
+        end
+      end
+
+      context 'when the end line is missing' do
+        let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/no_end.vcf') }
+
+        it 'raises an error' do
+          expect { vcard }.to raise_error(VCardigan::MissingEndError)
+        end
+      end
+
+      context 'when the full name is missing' do
+        let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/no_fullname.vcf') }
+
+        it 'raises an error' do
+          expect { vcard }.to raise_error(VCardigan::MissingFullNameError)
+        end
+      end
+
+      context 'when there are multiple begin lines' do
+        let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/multiple_begin.vcf') }
+
+        it 'raises an error' do
+          expect { vcard }.to raise_error(VCardigan::UnexpectedBeginError)
+        end
+      end
+    end
+
+    context 'valid 4.0 vCard' do
+      let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/joe.vcf') }
+      let(:vcard) { VCardigan.parse!(data) }
+      let(:fields) { vcard.instance_variable_get(:@fields) }
+
+      it 'should set the version' do
+        vcard.version.should == '4.0'
+      end
+
+      it 'should only have one version property' do
+        vcard.to_s.lines.count {|l| l =~ /^VERSION:/ }.should == 1
+      end
+
+      it 'should add the properties to the fields array' do
+        fields.should have_key('n')
+        fields.should have_key('fn')
+      end
+    end
+
+    context 'google 3.0 vCard' do
+      let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/google.vcf') }
+      let(:vcard) { VCardigan.parse!(data) }
+      let(:fields) { vcard.instance_variable_get(:@fields) }
+
+      it 'should set the version' do
+        vcard.version.should == '3.0'
+      end
+
+      it 'should add the properties to the fields array' do
+        fields.should have_key('n')
+        fields.should have_key('fn')
+        fields.should have_key('photo')
+        fields.should have_key('x-socialprofile')
+      end
+    end
+  end
 end

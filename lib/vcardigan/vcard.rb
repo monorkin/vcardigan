@@ -24,19 +24,27 @@ module VCardigan
       @group = nil
     end
 
-    def parse(data)
-      lines = unfold(data)
+    def parse!(data)
+      parse(data, strict: true)
+    end
+
+    def parse(data, strict: false)
+      self.version = nil if strict
+      lines = unfold(data, strict: strict)
 
       # Add the parsed properties to this vCard
       lines.each do |line|
         if line =~ /^VERSION:(.+)/
-          @version = $1
+          self.version = $1
           next
         end
 
         property = VCardigan::Property.parse(self, line)
         add_prop(property)
       end
+
+      raise VCardigan::MissingVersionError if strict && self.version.nil?
+      raise VCardigan::MissingFullNameError if strict && !@fields.has_key?('fn')
 
       self
     end
@@ -170,8 +178,11 @@ module VCardigan
     # lines to be inserted for readability - it does this by dropping zero-length
     # lines.
     # Borrowed from https://github.com/qoobaa/vcard
-    def unfold(card)
+    def unfold(card, strict: true)
       unfolded = []
+
+      passed_begining =  0
+      passed_ending = 0
 
       prior_line = nil
       card.each_line do |line|
@@ -179,16 +190,29 @@ module VCardigan
         # If it's a continuation line, add it to the last.
         # If it's an empty line, drop it from the input.
         if line =~ /^[ \t]/
+          next if strict && passed_begining.zero?
           unfolded[-1] << line[1, line.size-1]
-        elsif line =~ /(^BEGIN:VCARD$)|(^END:VCARD$)/
+        elsif line =~ /^BEGIN:VCARD$/
+          passed_begining += 1
+          raise VCardigan::UnexpectedBeginError if strict && passed_begining > 1
+        elsif line =~ /^END:VCARD$/
+          passed_ending += 1
+          break if strict
         elsif prior_line && (prior_line =~ UNTERMINATED_QUOTED_PRINTABLE)
+          next if strict && passed_begining.zero?
           # Strip the trailing = off prior line, then append current line
           unfolded[-1] = prior_line[0, prior_line.length-1] + line
         elsif line =~ /^$/
         else
+          next if strict && passed_begining.zero?
           unfolded << line
         end
         prior_line = unfolded[-1]
+      end
+
+      if strict
+        raise VCardigan::MissingBeginError if passed_begining == 0
+        raise VCardigan::MissingEndError if passed_ending == 0
       end
 
       unfolded
@@ -225,8 +249,7 @@ module VCardigan
 
     def validate
       unless @fields['fn']
-        raise VCardigan::EncodingError,
-          "vCards must include an FN field"
+        raise VCardigan::MissingFullNameError
       end
     end
 
