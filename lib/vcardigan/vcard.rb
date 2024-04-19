@@ -1,3 +1,5 @@
+require 'stringio'
+
 module VCardigan
 
   class VCard
@@ -5,6 +7,30 @@ module VCardigan
     # A quoted-printable encoded string with a trailing '=', indicating that
     # it's not terminated
     UNTERMINATED_QUOTED_PRINTABLE = /ENCODING=QUOTED-PRINTABLE:.*=$/
+
+    class << self
+      def parse_all(io, skip_invalid: false, &block)
+        io = StringIO.new(io.to_s) unless io.is_a?(IO)
+
+        enumerator = Enumerator.new do |yielder|
+          loop do
+            begin
+              yielder << new.parse(io, strict: true)
+            rescue VCardigan::EncodingError => e
+              raise e unless skip_invalid
+            end
+
+            break if io.eof?
+          end
+        end
+
+        if block_given?
+          enumerator.each(&block)
+        else
+          enumerator
+        end
+      end
+    end
 
     attr_accessor :version
     attr_accessor :chars

@@ -20,6 +20,10 @@ module VCardigan
       VCardigan::VCard.new.parse(*args, strict: true)
     end
 
+    def parse_all!(io, skip_invalid: false, &block)
+      VCardigan::VCard.parse_all(io, skip_invalid: skip_invalid, &block)
+    end
+
   end
 
 end

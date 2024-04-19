@@ -453,4 +453,79 @@ describe VCardigan::VCard do
       end
     end
   end
+
+  describe '.parse_all!' do
+    context 'with a valid 4.0 vCard string' do
+      it 'should return an enumerator of vCards' do 
+        data = File.read(File.dirname(__FILE__) + '/../helpers/doe_family.vcf')
+        vcards = VCardigan.parse_all!(data)
+
+        expect(vcards).to be_an_instance_of(Enumerator)
+
+        vcards = vcards.to_a
+        expect(vcards.size).to eq(2)
+        expect(vcards).to all(be_an_instance_of(VCardigan::VCard))
+
+        vcards = []
+        VCardigan.parse_all!(data) do |vcard|
+          vcards << vcard
+        end
+
+        expect(vcards.size).to eq(2)
+        expect(vcards).to all(be_an_instance_of(VCardigan::VCard))
+      end
+    end
+
+    context 'with a valid 4.0 vCard io' do
+      it 'should return an enumerator of vCards' do 
+        data = File.open(File.dirname(__FILE__) + '/../helpers/doe_family.vcf', 'r')
+        vcards = VCardigan.parse_all!(data)
+
+        expect(vcards).to be_an_instance_of(Enumerator)
+
+        vcards = vcards.to_a
+        expect(vcards.size).to eq(2)
+        expect(vcards).to all(be_an_instance_of(VCardigan::VCard))
+
+        vcards = []
+        data.rewind
+        VCardigan.parse_all!(data) do |vcard|
+          vcards << vcard
+        end
+
+        expect(vcards.size).to eq(2)
+        expect(vcards).to all(be_an_instance_of(VCardigan::VCard))
+      end
+    end
+
+    context 'with an invalid vCard' do
+      it 'parses what it can and then rasies an error' do
+        data = File.open(File.dirname(__FILE__) + '/../helpers/scrambeled_doe_family.vcf', 'r')
+
+        vcards = []
+
+        expect do
+          VCardigan.parse_all!(data) do |vcard|
+            vcards << vcard
+          end
+        end.to raise_error(VCardigan::EncodingError)
+
+        expect(vcards.size).to eq(1)
+        expect(vcards.first).to be_an_instance_of(VCardigan::VCard)
+      end
+
+      it 'parses what it can when passed skip_invalid: true' do
+        data = File.open(File.dirname(__FILE__) + '/../helpers/scrambeled_doe_family.vcf', 'r')
+
+        vcards = []
+
+        VCardigan.parse_all!(data, skip_invalid: true) do |vcard|
+          vcards << vcard
+        end
+
+        expect(vcards.size).to eq(1)
+        expect(vcards.first).to be_an_instance_of(VCardigan::VCard)
+      end
+    end
+  end
 end
