@@ -24,10 +24,6 @@ module VCardigan
       @group = nil
     end
 
-    def parse!(data)
-      parse(data, strict: true)
-    end
-
     def parse(data, strict: false)
       self.version = nil if strict
       lines = unfold(data, strict: strict)
