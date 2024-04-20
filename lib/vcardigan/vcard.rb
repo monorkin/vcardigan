@@ -236,10 +236,7 @@ module VCardigan
         prior_line = unfolded[-1]
       end
 
-      if strict
-        raise VCardigan::MissingBeginError if passed_begining == 0
-        raise VCardigan::MissingEndError if passed_ending == 0
-      end
+      raise VCardigan::MissingEndError if strict && passed_ending == 0
 
       unfolded
     end
