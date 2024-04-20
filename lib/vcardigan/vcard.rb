@@ -15,7 +15,10 @@ module VCardigan
         enumerator = Enumerator.new do |yielder|
           loop do
             begin
-              yielder << new.parse(io, strict: true)
+              vcard = new.parse(io, strict: true)
+              break if io.eof? && vcard.nil?
+
+              yielder << vcard if vcard
             rescue VCardigan::EncodingError => e
               raise e unless skip_invalid
             end
@@ -53,6 +56,7 @@ module VCardigan
     def parse(data, strict: false)
       self.version = nil if strict
       lines = unfold(data, strict: strict)
+      return nil if lines.empty? && strict
 
       # Add the parsed properties to this vCard
       lines.each do |line|
@@ -232,7 +236,9 @@ module VCardigan
         prior_line = unfolded[-1]
       end
 
-      raise VCardigan::MissingEndError if strict && passed_ending == 0
+      if strict && passed_begining.positive? && passed_ending.zero?
+        raise VCardigan::MissingEndError 
+      end
 
       unfolded
     end
