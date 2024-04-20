@@ -10,20 +10,18 @@ module VCardigan
 
     class << self
       def parse_all(io, skip_invalid: false, &block)
-        io = StringIO.new(io.to_s) unless io.is_a?(IO)
+        io = StringIO.new(io.to_s) unless io_like?(io)
 
         enumerator = Enumerator.new do |yielder|
           loop do
+            break if io.eof?
+
             begin
               vcard = new.parse(io, strict: true)
-              break if io.eof? && vcard.nil?
-
               yielder << vcard if vcard
             rescue VCardigan::EncodingError => e
               raise e unless skip_invalid
             end
-
-            break if io.eof?
           end
         end
 
@@ -32,6 +30,12 @@ module VCardigan
         else
           enumerator
         end
+      end
+
+      private
+      
+      def io_like?(obj)
+        obj.respond_to?(:each_line) && obj.respond_to?(:eof?)
       end
     end
 
