@@ -11,10 +11,6 @@ module VCardigan
 
   class EncodingError < Error; end
 
-  class MissingBeginError < EncodingError
-    self.default_message = "vCards must start with a BEGIN:VCARD line"
-  end
-
   class MissingEndError < EncodingError
     self.default_message = "vCards must end with an END:VCARD line"
   end

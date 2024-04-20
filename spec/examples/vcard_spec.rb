@@ -384,14 +384,6 @@ describe VCardigan::VCard do
         end
       end
 
-      context 'when the begin line is missing' do
-        let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/no_begin.vcf') }
-
-        it 'raises an error' do
-          expect { vcard }.to raise_error(VCardigan::MissingBeginError)
-        end
-      end
-
       context 'when the end line is missing' do
         let(:data) { File.read(File.dirname(__FILE__) + '/../helpers/no_end.vcf') }
 
